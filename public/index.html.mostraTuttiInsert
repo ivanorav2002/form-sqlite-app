@@ -1,0 +1,90 @@
+ <!-- public/index.html -->
+ <!DOCTYPE html>
+ <html lang="en">
+ <head>
+    <meta charset="UTF-8">
+    <title>Simple Form</title>
+    <style>
+        body { font-family: Arial; max-width: 500px; margin: 50px auto; }
+        input, textarea { width: 100%; margin-bottom: 10px; padding: 8px; }
+        button { padding: 10px 15px; }
+        .message { margin-top: 10px; color: green; }
+        .error { color: red; }
+    </style>
+ </head>
+ <body>
+    <h1>Submit Your Info</h1>
+    <form id="dataForm">
+        <input type="text" name="name" placeholder="Your Name" required />
+        <input type="email" name="email" placeholder="Your Email" required />
+        <textarea name="message" placeholder="Your Message" required></textarea>
+        <button type="submit">Submit</button>
+    </form>
+    <div id="response" class="message"></div>
+
+<h2>Submitted Entries</h2>
+<div id="submissionsList"></div>
+
+ <script>
+    const form = document.getElementById('dataForm');
+    const responseDiv = document.getElementById('response');
+
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const name = this.name.value.trim();
+        const email = this.email.value.trim();
+        const message = this.message.value.trim();
+
+        const res = await fetch('/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, message })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            responseDiv.textContent = `Form submitted! ID: ${data.id}`;
+            responseDiv.className = 'message';
+            this.reset();
+            loadSubmissions();  // Reload list
+        } else {
+            responseDiv.textContent = data.error || 'An error occurred.';
+            responseDiv.className = 'error';
+        }
+    });
+
+    async function loadSubmissions() {
+        const res = await fetch('/submissions');
+        const submissions = await res.json();
+
+        const list = document.getElementById('submissionsList');
+        list.innerHTML = ''; // Clear current list
+
+        if (submissions.length === 0) {
+            list.innerHTML = '<p>No submissions yet.</p>';
+            return;
+        }
+
+        submissions.forEach(sub => {
+            const item = document.createElement('div');
+            item.className = 'submission';
+            item.innerHTML = `
+                <strong>${sub.name}</strong> (${sub.email})<br>
+                <em>${new Date(sub.submitted_at).toLocaleString()}</em><br>
+                <p>${sub.message}</p>
+                <hr>
+            `;
+            list.appendChild(item);
+        });
+    }
+
+    // Load on page load
+    loadSubmissions();
+</script>
+
+ 
+ </body>
+ </html>
+

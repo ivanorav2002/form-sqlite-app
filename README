@@ -1,0 +1,41 @@
+
+full-stack JavaScript web app:
+- HTML frontend with a form.
+- Sends data to the backend via fetch (using POST).
+- Backend receives the data and inserts it into a SQLite database.
+
+Features
+   Form with fields: name, email, message
+   Form submission via fetch()
+   Backend inserts data into a SQLite table called submissions
+
+./form-sqlite-app
+./form-sqlite-app/public
+./form-sqlite-app/public/index.html.senzaOutput
+./form-sqlite-app/public/index.html.mostraTuttiInsert
+./form-sqlite-app/public/index.html
+./form-sqlite-app/database.db
+./form-sqlite-app/README
+./form-sqlite-app/server.js.ShowAllSubmission
+./form-sqlite-app/server.js
+
+SETUP:
+-
+ mkdir form-sqlite-app
+ cd form-sqlite-app
+ -
+ Initialize Node.js project
+ npm init -y
+- install dependencies:
+ npm install express sqlite3 body-parser
+ OR for Debian: apt install node-express  node-sqlite3  (node.js modules for javascript)
+ -
+ Run the server
+
+ node server.js
+
+ Visit http://localhost:3000
+
+
+
+

@@ -1,0 +1,90 @@
+ // server.js
+ const express = require('express');
+ const sqlite3 = require('sqlite3').verbose();
+ const path = require('path');
+ const bodyParser = require('body-parser');
+ // 
+ const app = express();
+ const PORT = 3000;
+ // Setup database
+ const db = new sqlite3.Database('./database.db');
+ // Create table if it doesn't exist
+ db.run(`
+    CREATE TABLE IF NOT EXISTS submissions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        message TEXT NOT NULL,
+        submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+ `);
+
+ // Middleware
+ app.use(bodyParser.json());
+ app.use(express.static(path.join(__dirname, 'public')));
+
+ // API endpoint to receive form data
+ app.post('/submit', (req, res) => {
+    const { name, email, message } = req.body;
+ 
+    if (!name || !email || !message) {
+        return res.status(400).json({ error: 'All fields are required.' });
+    }
+ 
+    const stmt = db.prepare(`INSERT INTO submissions (name, email, message) VALUES (?, ?, ?)`);
+    stmt.run(name, email, message, function (err) {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Database error.' });
+        }
+        res.json({ success: true, id: this.lastID });
+    });
+ });
+
+// Get all submissions
+//app.get('/submissions', (req, res) => {
+//    db.all(`SELECT id, name, email, message, submitted_at FROM submissions ORDER BY submitted_at DESC`, (err, rows) => {
+//        if (err) {
+ //           console.error(err);
+  //          return res.status(500).json({ error: 'Failed to fetch submissions.' });
+ //       }
+//        res.json(rows);
+  //  });
+//});
+
+// Search submissions by name or email
+app.get('/search', (req, res) => {
+    const query = req.query.query;
+
+    if (!query || query.trim() === '') {
+        return res.status(400).json({ error: 'Search query is required.' });
+    }
+
+    const searchTerm = `%${query.toLowerCase()}%`;
+
+    db.all(
+        `SELECT id, name, email, message, submitted_at
+         FROM submissions
+         WHERE LOWER(name) LIKE ? OR LOWER(email) LIKE ?
+         ORDER BY submitted_at DESC`,
+        [searchTerm, searchTerm],
+        (err, rows) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ error: 'Search failed.' });
+            }
+            res.json(rows);
+        }
+    );
+});
+
+
+
+
+ 
+ // Start server
+ app.listen(PORT, () => {
+    console.log(`Server is running at http://localhost:${PORT}`);
+ });
+
+
