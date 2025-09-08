@@ -1,3 +1,5 @@
+Webapp by javascript, 
+fetches 3 fields data and insert them in sqlite3 db with a search function
 
 full-stack JavaScript web app:
 - HTML frontend with a form.
